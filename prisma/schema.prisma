@@ -1,0 +1,18 @@
+// prisma/schema.prisma
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+
+model url {
+    id  Int @id @default(autoincrement())
+    clickCount Int @default(0)
+    longUrl    String  
+    randomCode String @unique
+}
