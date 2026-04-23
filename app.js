@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 8080;
 
 app.use(express.json())
 
-app.get("/", (req, res) => res.send("Hello World!"));
+app.get("/", (req, res) => res.send("Health check, server is running"));
 
  app.post("/shorten", async (req, res) => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -19,11 +19,10 @@ app.get("/", (req, res) => res.send("Hello World!"));
 
     }
 
-    const myURL = new URL(req.body.url);
-
-
     const fullUrl = 'http://localhost:' + PORT + '/' + randomizedCode;
     console.log(fullUrl);
+
+    
 
     await prisma.url.create({
       data: {
@@ -32,43 +31,41 @@ app.get("/", (req, res) => res.send("Hello World!"));
       }
     })
     
+  
     
     let returnedUrl = {
       shortCode: randomizedCode,
       shortUrl: fullUrl
     } 
 
-    let jsonReturnedUrl = JSON.stringify(returnedUrl);
-    res.send(jsonReturnedUrl).header(200); 
+    res.status(201).json(returnedUrl);
 
 })
 
 
-app.get('/stats/:shortCode', async (req, res) => { // put stats route before :shortCode, or else a request with stats/:shortCode, would match :shortCode and think stats is a short code when it isnt
-  const shortCodeRow = await prisma.url.findFirst({
+
+app.get('/stats/:shortCode', async (req, res) => { 
+
+  let shortCodeRow = await prisma.url.findFirst({
   where: {
     randomCode: req.params.shortCode
   }
+  })
+  
+if (!shortCodeRow) {
+    const error = new Error("Short code not found");
+    error.status = 404;
+    throw error;
+  }
+
+  const {clickCount, longUrl} = shortCodeRow || {};
+
+  res.status(200).send({clickCount: clickCount, originalUrl: longUrl})
 })
 
 
-
-
-const {clickCount, longUrl} = shortCodeRow || {};
-
-
-if(clickCount && longUrl) {
-
-
-res.send({clickCount: clickCount, originalUrl: longUrl}).status(200)
-
-
-}
-
-})
 
 app.get("/:shortCode", async (req, res) => {
-
 
 const shortCodeRow = await prisma.url.findFirst({
   where: {
@@ -77,13 +74,18 @@ const shortCodeRow = await prisma.url.findFirst({
 })
 
 
+if (!shortCodeRow) {
+    const error = new Error("Short code not found");
+    error.status = 404;
+    throw error;
+  }
+
+
+
 const longUrl = shortCodeRow.longUrl;
 
 
-if(longUrl)
- {
 
-  // maybe dont set it a variable? leave it at await
 
   await prisma.url.update({
     where: {randomCode: req.params.shortCode},
@@ -93,10 +95,9 @@ if(longUrl)
       },
     },
   })
-
-
-  res.redirect(longUrl).status(302);
- }
+  
+  
+  res.redirect(longUrl)
 })
 
 
@@ -106,15 +107,18 @@ if(longUrl)
 
 
 
+app.use((err, req, res, next) => {
+  console.error(err);
 
+  res.status(err.status || 500).send(err.message);
+})
 
 app.listen(PORT, (error) => {
-
-
 
     if(error) {
         throw error;
     }
-  console.log(`My first Express app - listening on port ${PORT}!`);
+
+  console.log(`URL shortener - listening on port ${PORT}!`);
 })
 
