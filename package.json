@@ -1,4 +1,8 @@
 {
+  "scripts": {
+    "test": "jest -c jest.config.js --runInBand --",
+    "coverage": "jest -c jest.config.js --runInBand --coverage"
+  },
   "dependencies": {
     "@prisma/adapter-pg": "^7.7.0",
     "@prisma/client": "^7.7.0",
@@ -10,6 +14,8 @@
   },
   "devDependencies": {
     "@types/node": "^25.6.0",
-    "prisma": "^7.7.0"
+    "jest": "^30.3.0",
+    "prisma": "^7.7.0",
+    "supertest": "^7.2.2"
   }
 }

@@ -7,9 +7,26 @@ const PORT = process.env.PORT || 8080;
 
 app.use(express.json())
 
-app.get("/", (req, res) => res.send("Health check, server is running"));
 
- app.post("/shorten", async (req, res) => {
+const sanitizeUrl = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+  }
+
+next()
+};
+
+const validateUrl = body("url")
+  .trim()
+  .notEmpty()
+  .withMessage("url cannot be empty")
+  .isURL()
+  .withMessage("must be valid url");
+
+app.get("/", (req, res) => res.send("Health Check: server is up and running"));
+
+ app.post("/shorten", validateUrl, sanitizeUrl, async (req, res) => {
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
 
     let randomizedCode = "";
@@ -19,11 +36,10 @@ app.get("/", (req, res) => res.send("Health check, server is running"));
 
     }
 
-    const fullUrl = 'http://localhost:' + PORT + '/' + randomizedCode;
-    console.log(fullUrl);
+    const tinyUrl = 'http://localhost:' + PORT + '/' + randomizedCode;
+
 
     
-
     await prisma.url.create({
       data: {
         longUrl: req.body.url,
@@ -33,17 +49,14 @@ app.get("/", (req, res) => res.send("Health check, server is running"));
     
   
     
-    let returnedUrl = {
-      shortCode: randomizedCode,
-      shortUrl: fullUrl
-    } 
+    
 
-    res.status(201).json(returnedUrl);
+    res.status(201).json({shortCode: randomizedCode, shortUrl: tinyUrl});
 
 })
 
 
-
+// ensure this is before shortCode route, or else it would think "stats" is a type of short code.
 app.get('/stats/:shortCode', async (req, res) => { 
 
   let shortCodeRow = await prisma.url.findFirst({
@@ -113,12 +126,5 @@ app.use((err, req, res, next) => {
   res.status(err.status || 500).send(err.message);
 })
 
-app.listen(PORT, (error) => {
 
-    if(error) {
-        throw error;
-    }
-
-  console.log(`URL shortener - listening on port ${PORT}!`);
-})
-
+module.exports = app;

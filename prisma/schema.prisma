@@ -15,4 +15,5 @@ model url {
     clickCount Int @default(0)
     longUrl    String  
     randomCode String @unique
+    createdAt  DateTime @default(now())
 }
