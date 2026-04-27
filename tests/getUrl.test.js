@@ -1,8 +1,8 @@
-
 const request = require("supertest");
 const app = require("../server.js")
-jest.mock('../lib/prisma', () => ({
-  prisma: {
+
+jest.mock('@prisma/client', () => ({
+  PrismaClient: jest.fn().mockImplementation(() => ({
     url: {
       findFirst: jest.fn().mockResolvedValue({ 
         randomCode: "abc123", 
@@ -11,25 +11,21 @@ jest.mock('../lib/prisma', () => ({
       }),
       update: jest.fn().mockResolvedValue({})
     }
-  }
+  }))
 }));
 
 describe('GET /:shorten', () => {
+  test('valid code is accepted', async () => {
+    const res = await request(app).get('/abc123')
+    expect(res.status).toBe(302)
+  })
 
-test('valid code is accepted', async () => {
-   const res = await request(app).get('/abc123')
-
-   expect(res.status).toBe(302)
-
+  test('invalid code is rejected', async () => {
+    const { PrismaClient } = require('@prisma/client')
+    const mockPrisma = PrismaClient.mock.results[0].value
+    mockPrisma.url.findFirst.mockResolvedValueOnce(null)
+    
+    const res = await request(app).get('/thisCodeisntright')
+    expect(res.status).toBe(404)
+  })
 })
-
-
-test('invalid code is rejected', async () => {
-   const { prisma } = require('../lib/prisma');
-   prisma.url.findFirst.mockResolvedValueOnce(null)
-   const res = await request(app).get('/thisCodeisntright')
-   expect(res.status).toBe(404)
-
-})
-})
-
