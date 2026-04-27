@@ -1,7 +1,6 @@
 // app.js
 const { body, validationResult } = require("express-validator")
-const { PrismaClient } = require('@prisma/client')
-const prisma = new PrismaClient()
+const { prisma } = require("./lib/prisma")
 const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 8080;
