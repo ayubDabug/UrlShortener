@@ -1,5 +1,5 @@
 FROM node 
-COPY ./app.js .
-CMD ["node", "app.js"]
+COPY ./server.js .
+CMD ["node", "server.js"]
 
 EXPOSE 8080
