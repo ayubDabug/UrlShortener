@@ -14,15 +14,16 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: '20'  
+          node-version: '20'
+      
+      - name: Install dependencies
+        run: npm ci  # This installs @prisma/client
       
       - name: Generate Prisma Client
         run: npx prisma generate
         env:
+          # Dummy URL - tests will mock, so this is fine
           DATABASE_URL: "postgresql://dummy:dummy@localhost:5432/dummy"
-      
-      - name: Install dependencies
-        run: npm ci
       
       - name: Run tests
         run: npm test
