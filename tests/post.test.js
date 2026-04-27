@@ -1,6 +1,6 @@
 
 const request = require("supertest");
-const app = require("../app.js")
+const app = require("../server.js")
 
 jest.mock('../lib/prisma', () => ({
   prisma: {
