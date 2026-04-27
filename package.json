@@ -3,7 +3,8 @@
     "test": "jest -c jest.config.js --runInBand --",
     "coverage": "jest -c jest.config.js --runInBand --coverage",
     "start": "node server.js",
-    "build": "prisma migrate deploy && prisma generate"
+    "build": "prisma migrate deploy && prisma generate",
+    "pretest": "prisma generate"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.7.0",
