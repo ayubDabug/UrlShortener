@@ -1,6 +1,8 @@
 // server.js - REPLACE THE WHOLE FILE
 const { body, validationResult } = require("express-validator")
-const { prisma } = require("./lib/prisma")
+require('dotenv/config')
+const { PrismaClient } = require('@prisma/client')
+const prisma = new PrismaClient()
 const express = require("express");
 const app = express();
 const PORT = process.env.PORT || 8080;
