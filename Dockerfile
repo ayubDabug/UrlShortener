@@ -1,5 +1,19 @@
-FROM node 
-COPY ./server.js .
-CMD ["node", "server.js"]
+FROM node:18-alpine
+
+RUN apk add --no-cache openssl
+
+WORKDIR /app
+
+COPY package*.json ./
+
+RUN npm ci
+
+COPY prisma ./prisma
+
+RUN npx prisma generate
+
+COPY . .
 
 EXPOSE 8080
+
+CMD ["sh", "-c", "npx prisma migrate deploy && node app.js"]

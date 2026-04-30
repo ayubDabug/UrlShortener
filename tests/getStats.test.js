@@ -1,20 +1,34 @@
 const request = require("supertest");
 const app = require("../app.js")  
 
-jest.mock('@prisma/client', () => ({
-  PrismaClient: jest.fn().mockImplementation(() => ({
+
+jest.mock('../lib/prisma', () => ({
+  prisma: {
     url: {
-      findFirst: jest.fn().mockResolvedValue({ 
-        randomCode: "abc123", 
-        longUrl: "https://example.com",
-        clickCount: 5
-      })
-    }
-  }))
+      findUnique: jest.fn()
+      }
+  }
 }));
 
+
 describe('GET /stats/:shortCode', () => {
+
+ const { prisma } = require('../lib/prisma');
+  beforeEach(() => {
+    jest.clearAllMocks(); 
+  });
+
+
+
   test('return stats for a valid code', async () => {
+
+
+    prisma.url.findUnique.mockResolvedValue({
+      randomCode: "abc123",
+      longUrl: "https://example.com",
+      clickCount: 5
+    });
+    
     const res = await request(app).get('/stats/abc123')
     expect(res.status).toBe(200)
     expect(res.body).toHaveProperty("clickCount")
@@ -23,9 +37,7 @@ describe('GET /stats/:shortCode', () => {
 
   test('rejects invalid code', async () => {
 
-    const { PrismaClient } = require('@prisma/client')
-    const mockPrisma = PrismaClient.mock.results[0].value
-    mockPrisma.url.findFirst.mockResolvedValueOnce(null)
+prisma.url.findUnique.mockResolvedValueOnce(null);
     
     const res = await request(app).get('/stats/wdas12')
     expect(res.status).toBe(404)
